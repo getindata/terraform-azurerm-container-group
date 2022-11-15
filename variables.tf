@@ -62,12 +62,12 @@ variable "identity" {
 
 variable "image_registry_credential" {
   description = "Credentials for ACR, so the images can be pulled by the container instance"
-  type = object({
+  type = list(object({
     username = string
     password = string
     server   = string
-  })
-  default = null
+  }))
+  default = []
 }
 
 variable "container_diagnostics_log_analytics" {

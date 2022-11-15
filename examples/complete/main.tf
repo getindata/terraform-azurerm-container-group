@@ -73,8 +73,8 @@ module "full_example" {
   }
 
   container_diagnostics_log_analytics = {
-    workspace_id          = azurerm_log_analytics_workspace.this.workspace_id
-    workspace_key         = azurerm_log_analytics_workspace.this.primary_shared_key
+    workspace_id  = azurerm_log_analytics_workspace.this.workspace_id
+    workspace_key = azurerm_log_analytics_workspace.this.primary_shared_key
   }
 
   container_group_diagnostics_setting = {

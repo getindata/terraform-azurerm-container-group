@@ -9,5 +9,5 @@ locals {
   location            = coalesce(one(data.azurerm_resource_group.this[*].location), var.location)
   resource_group_name = coalesce(one(data.azurerm_resource_group.this[*].name), var.resource_group_name)
 
-  container_group_system_assigned_identity_principal_id = try(azurerm_container_group.this.0.identity.0.principal_id, "")
+  container_group_system_assigned_identity_principal_id = try(azurerm_container_group.this[0].identity[0].principal_id, "")
 }

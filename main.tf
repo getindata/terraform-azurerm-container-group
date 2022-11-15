@@ -62,7 +62,7 @@ resource "azurerm_container_group" "this" {
   }
 
   dynamic "image_registry_credential" {
-    for_each = var.image_registry_credential != null ? [var.image_registry_credential] : []
+    for_each = var.image_registry_credential
     content {
       password = image_registry_credential.value.password
       server   = image_registry_credential.value.server
@@ -97,7 +97,7 @@ module "diagnostic_settings" {
 
 resource "azurerm_role_assignment" "container_group_system_assigned_identity" {
   count = (module.this.enabled && var.identity != null && try(var.identity.type, null) == "SystemAssigned"
-    ? length(var.identity.system_assigned_identity_role_assignments) : 0 )
+  ? length(var.identity.system_assigned_identity_role_assignments) : 0)
 
   principal_id         = local.container_group_system_assigned_identity_principal_id
   scope                = var.identity.system_assigned_identity_role_assignments[count.index].scope
