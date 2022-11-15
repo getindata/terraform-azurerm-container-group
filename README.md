@@ -1,56 +1,54 @@
-# Terraform Module Template
+# Azure Container Group Terraform Module
 
-
-> **Warning**:
-> This is a template document. Remember to **remove** all text in _italics_ and **update** Module name, Repo name and links/badges to the acual name of your GitHub repository/module!!!
-
-<!--- Pick Cloud provider Badge -->
-<!---![Azure](https://img.shields.io/badge/azure-%230072C6.svg?style=for-the-badge&logo=microsoftazure&logoColor=white) -->
-<!---![Google Cloud](https://img.shields.io/badge/GoogleCloud-%234285F4.svg?style=for-the-badge&logo=google-cloud&logoColor=white) -->
-![AWS](https://img.shields.io/badge/AWS-%23FF9900.svg?style=for-the-badge&logo=amazon-aws&logoColor=white)
+![Azure](https://img.shields.io/badge/azure-%230072C6.svg?style=for-the-badge&logo=microsoftazure&logoColor=white)
 ![Terraform](https://img.shields.io/badge/terraform-%235835CC.svg?style=for-the-badge&logo=terraform&logoColor=white)
 
 <!--- Replace repository name -->
-![License](https://badgen.net/github/license/getindata/terraform-module-template/)
-![Release](https://badgen.net/github/release/getindata/terraform-module-template/)
+![License](https://badgen.net/github/license/getindata/terraform-azurerm-container-group/)
+![Release](https://badgen.net/github/release/getindata/terraform-azurerm-container-group/)
 
 <p align="center">
   <img height="150" src="https://getindata.com/img/logo.svg">
   <h3 align="center">We help companies turn their data into assets</h3>
 </p>
 
+This module manages an Azure Container Group instance.
+
+A container group is a collection of containers that get scheduled on the same host machine. The containers in a container group share a lifecycle, resources, local network, and storage volumes. It's similar in concept to a pod in Kubernetes.
+
 ---
-
-_Brief Description of MODULE:_
-
-* _What it does_
-* _What techonlogies it uses_
 
 ## USAGE
 
-_Example usage of the module - terraform code snippet_
-
 ```terraform
-```
+module "template" {
+  source = "github.com/getindata/terraform-azurerm-container-group"
+  
+  name                = "nginx"
+  resource_group_name = "example-rg"
+  location            = "West Europe"
 
-## NOTES
-
-_Additional information that should be made public, for ex. how to solve known issues, additional descriptions/suggestions_
-
-<!-- BEGIN_TF_DOCS -->
-## EXAMPLES
-```hcl
-module "terraform_module_template" {
-  source  = "../../"
-  context = module.this.context
-
-  example_var = "This is example value."
+  containers = {
+    nginx = {
+      image  = "nginx:latest"
+      cpu    = 1
+      memory = 2
+      ports = [
+        {
+          port = 80
+        }
+      ]
+    }
+  }
 }
 ```
 
+## EXAMPLES
 
+- [Complete](examples/complete) - deploys resource group, VNet, Log Analytics Workspace and container group in the subnet
+- [Simple](examples/simple) - deploys resource group and publicly available nginx container with customized html page
 
-
+<!-- BEGIN_TF_DOCS -->
 
 ## Inputs
 
@@ -120,9 +118,8 @@ Apache 2 Licensed. See [LICENSE](LICENSE) for full details.
 
 ## AUTHORS
 
-<!--- Replace repository name -->
-<a href="https://github.com/getindata/REPO_NAME/graphs/contributors">
-  <img src="https://contrib.rocks/image?repo=getindata/terraform-module-template" />
+<a href="https://github.com/getindata/erraform-azurerm-container-group/graphs/contributors">
+  <img src="https://contrib.rocks/image?repo=getindata/terraform-azurerm-container-group" />
 </a>
 
 Made with [contrib.rocks](https://contrib.rocks).
