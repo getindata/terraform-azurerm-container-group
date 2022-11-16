@@ -97,7 +97,9 @@ module "template" {
 
 | Name | Description |
 |------|-------------|
+| <a name="output_fqdn"></a> [fqdn](#output\_fqdn) | The FQDN of the container group derived from `dns_name_label` |
 | <a name="output_id"></a> [id](#output\_id) | ID of the container group |
+| <a name="output_ip_address"></a> [ip\_address](#output\_ip\_address) | The IP address allocated to the container group |
 | <a name="output_name"></a> [name](#output\_name) | Name of the container group |
 | <a name="output_resource_group_name"></a> [resource\_group\_name](#output\_resource\_group\_name) | Name of the container group resource group |
 | <a name="output_system_assigned_identity_principal_id"></a> [system\_assigned\_identity\_principal\_id](#output\_system\_assigned\_identity\_principal\_id) | ID of the system assigned principal |
