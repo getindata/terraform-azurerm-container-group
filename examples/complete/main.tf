@@ -1,3 +1,5 @@
+data "azurerm_client_config" "current" {}
+
 module "resource_group" {
   source  = "github.com/getindata/terraform-azurerm-resource-group?ref=v1.2.0"
   context = module.this.context
@@ -28,6 +30,30 @@ resource "azurerm_log_analytics_workspace" "this" {
   sku                 = "PerGB2018"
 }
 
+resource "azurerm_key_vault" "this" {
+  location            = module.resource_group.location
+  name                = module.this.id
+  resource_group_name = module.resource_group.name
+  sku_name            = "standard"
+  tenant_id           = data.azurerm_client_config.current.tenant_id
+}
+
+resource "azurerm_key_vault_access_policy" "current" {
+  key_vault_id = azurerm_key_vault.this.id
+  object_id    = data.azurerm_client_config.current.object_id
+  tenant_id    = data.azurerm_client_config.current.tenant_id
+
+  secret_permissions = ["Get", "Set", "Delete"]
+}
+
+resource "azurerm_key_vault_secret" "baz" {
+  key_vault_id = azurerm_key_vault.this.id
+  name         = "baz"
+  value        = "secret-baz"
+
+  depends_on = [azurerm_key_vault_access_policy.current]
+}
+
 module "full_example" {
   source  = "../../"
   context = module.this.context
@@ -53,6 +79,12 @@ module "full_example" {
       }
       secure_environment_variables = {
         SECRET_FOO = "secret-bar"
+      }
+      secure_environment_variables_from_key_vault = {
+        SECRET_BAZ = {
+          key_vault_id = azurerm_key_vault.this.id
+          name         = "baz"
+        }
       }
       volumes = {
         nginx-html = {
@@ -80,4 +112,6 @@ module "full_example" {
   container_group_diagnostics_setting = {
     workspace_resource_id = azurerm_log_analytics_workspace.this.id
   }
+
+  depends_on = [azurerm_key_vault_secret.baz] #Let's wait until secret is created, so we can reference it by name
 }
