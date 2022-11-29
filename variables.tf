@@ -22,6 +22,10 @@ variable "containers" {
     commands                     = optional(list(string), [])
     environment_variables        = optional(map(string), {})
     secure_environment_variables = optional(map(string), {})
+    secure_environment_variables_from_key_vault = optional(map(object({
+      key_vault_id = string
+      name         = string
+    })), {})
     volumes = optional(map(object({
       mount_path = string
       secret     = map(string)

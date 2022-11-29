@@ -4,6 +4,20 @@ data "azurerm_resource_group" "this" {
   name = var.resource_group_name
 }
 
+data "azurerm_key_vault_secret" "container_secret" {
+  for_each = merge([for container_name, container in var.containers :
+    {
+      for k, v in container.secure_environment_variables_from_key_vault : "${container_name}/${k}" => {
+        key_vault_id = v.key_vault_id
+        name         = v.name
+      }
+    }
+  ]...)
+
+  key_vault_id = each.value.key_vault_id
+  name         = each.value.name
+}
+
 resource "azurerm_container_group" "this" {
   count = module.this.enabled ? 1 : 0
 
@@ -47,9 +61,15 @@ resource "azurerm_container_group" "this" {
         }
       }
 
-      environment_variables        = container.value.environment_variables
-      secure_environment_variables = container.value.secure_environment_variables
-      commands                     = container.value.commands
+      environment_variables = container.value.environment_variables
+      secure_environment_variables = merge(
+        {
+          for variable_name, variable in container.value.secure_environment_variables_from_key_vault : variable_name =>
+          data.azurerm_key_vault_secret.container_secret[format("%s/%s", container.key, variable_name)].value
+        },
+        container.value.secure_environment_variables
+      )
+      commands = container.value.commands
     }
   }
 
