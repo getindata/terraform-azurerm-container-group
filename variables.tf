@@ -29,6 +29,15 @@ variable "containers" {
   }))
 }
 
+variable "exposed_ports" {
+  description = "It can only contain ports that are also exposed on one or more containers in the group"
+  type = list(object({
+    port     = number
+    protocol = optional(string, "TCP")
+  }))
+  default = []
+}
+
 variable "subnet_ids" {
   description = "The subnet resource IDs for a container group. At the moment it supports 1 subnet maximum"
   type        = list(string)
@@ -45,6 +54,17 @@ variable "dns_name_servers" {
   description = "DNS name servers configured with containers"
   type        = list(string)
   default     = []
+}
+
+variable "restart_policy" {
+  description = "Restart policy for the container group. Allowed values are `Always`, `Never`, `OnFailure`. Defaults to `Always`"
+  type        = string
+  default     = "Always"
+
+  validation {
+    condition     = contains(["Always", "Never", "OnFailure"], var.restart_policy)
+    error_message = "Allowed values are `Always`, `Never` or `OnFailure`"
+  }
 }
 
 variable "identity" {

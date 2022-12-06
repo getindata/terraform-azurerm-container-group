@@ -65,6 +65,14 @@ module "full_example" {
     }
   }
 
+  exposed_ports = [
+    {
+      port = 80
+    }
+  ]
+
+  restart_policy = "Always"
+
   identity = {
     system_assigned_identity_role_assignments = [{
       scope                = module.resource_group.id
