@@ -29,10 +29,20 @@ resource "azurerm_container_group" "this" {
   dns_name_label      = length(var.subnet_ids) == 0 ? (var.dns_name_label != null ? var.dns_name_label : local.name_from_descriptor) : null
   subnet_ids          = length(var.subnet_ids) == 0 ? null : var.subnet_ids
 
+  restart_policy = var.restart_policy
+
   dynamic "dns_config" {
     for_each = toset(length(var.dns_name_servers) > 0 ? [var.dns_name_servers] : [])
     content {
       nameservers = dns_config.value
+    }
+  }
+
+  dynamic "exposed_port" {
+    for_each = var.exposed_ports
+    content {
+      port     = exposed_port.value.port
+      protocol = exposed_port.value.protocol
     }
   }
 
