@@ -28,9 +28,32 @@ variable "containers" {
     })), {})
     volumes = optional(map(object({
       mount_path = string
-      secret     = map(string)
+      read_only  = optional(bool, false)
+      empty_dir  = optional(bool)
+      git_repo = optional(object({
+        url       = string
+        directory = optional(string)
+        revision  = optional(string)
+      }))
+      secret               = optional(map(string))
+      storage_account_name = optional(string)
+      storage_account_key  = optional(string)
+      share_name           = optional(string)
     })), {})
   }))
+
+  validation {
+    condition = alltrue(flatten([
+      for container in var.containers : [
+        for volume in container.volumes :
+        (length([
+          for v in [volume.secret, volume.storage_account_name, volume.git_repo, volume.empty_dir] : v
+          if v != null
+        ]) == 1)
+      ]
+    ]))
+    error_message = "Exactly one of empty_dir volume, git_repo volume, secret volume or storage account volume (share_name, storage_account_name, and storage_account_key) must be specified"
+  }
 }
 
 variable "exposed_ports" {
