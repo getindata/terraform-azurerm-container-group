@@ -65,9 +65,23 @@ resource "azurerm_container_group" "this" {
       dynamic "volume" {
         for_each = container.value.volumes
         content {
-          mount_path = volume.value.mount_path
-          name       = volume.key
-          secret     = volume.value.secret
+          mount_path           = volume.value.mount_path
+          name                 = volume.key
+          read_only            = volume.value.read_only
+          empty_dir            = volume.value.empty_dir
+          secret               = volume.value.secret
+          storage_account_name = volume.value.storage_account_name
+          storage_account_key  = volume.value.storage_account_key
+          share_name           = volume.value.share_name
+
+          dynamic "git_repo" {
+            for_each = volume.value.git_repo != null ? [volume.value.git_repo] : []
+            content {
+              url       = git_repo.value.url
+              directory = git_repo.value.directory
+              revision  = git_repo.value.revision
+            }
+          }
         }
       }
 
