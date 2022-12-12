@@ -117,8 +117,9 @@ module "full_example" {
     workspace_key = azurerm_log_analytics_workspace.this.primary_shared_key
   }
 
-  container_group_diagnostics_setting = {
-    workspace_resource_id = azurerm_log_analytics_workspace.this.id
+  diagnostic_settings = {
+    enabled               = true
+    logs_destinations_ids = [azurerm_log_analytics_workspace.this.id]
   }
 
   depends_on = [azurerm_key_vault_secret.baz] #Let's wait until secret is created, so we can reference it by name

@@ -128,15 +128,13 @@ resource "azurerm_container_group" "this" {
 }
 
 module "diagnostic_settings" {
-  count = module.this.enabled && var.container_group_diagnostics_setting != null ? 1 : 0
+  count = module.this.enabled && var.diagnostic_settings.enabled ? 1 : 0
 
   source  = "claranet/diagnostic-settings/azurerm"
-  version = "6.1.0"
+  version = "6.2.0"
 
-  resource_id = one(azurerm_container_group.this[*].id)
-  logs_destinations_ids = [
-    var.container_group_diagnostics_setting.workspace_resource_id
-  ]
+  resource_id           = one(azurerm_container_group.this[*].id)
+  logs_destinations_ids = var.diagnostic_settings.logs_destinations_ids
 }
 
 resource "azurerm_role_assignment" "container_group_system_assigned_identity" {

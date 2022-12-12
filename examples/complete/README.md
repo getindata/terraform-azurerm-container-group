@@ -1,6 +1,8 @@
 # Complete Example
 
 ```terraform
+data "azurerm_client_config" "current" {}
+
 module "resource_group" {
   source  = "github.com/getindata/terraform-azurerm-resource-group?ref=v1.2.0"
   context = module.this.context
@@ -31,6 +33,30 @@ resource "azurerm_log_analytics_workspace" "this" {
   sku                 = "PerGB2018"
 }
 
+resource "azurerm_key_vault" "this" {
+  location            = module.resource_group.location
+  name                = module.this.id
+  resource_group_name = module.resource_group.name
+  sku_name            = "standard"
+  tenant_id           = data.azurerm_client_config.current.tenant_id
+}
+
+resource "azurerm_key_vault_access_policy" "current" {
+  key_vault_id = azurerm_key_vault.this.id
+  object_id    = data.azurerm_client_config.current.object_id
+  tenant_id    = data.azurerm_client_config.current.tenant_id
+
+  secret_permissions = ["Get", "Set", "Delete"]
+}
+
+resource "azurerm_key_vault_secret" "baz" {
+  key_vault_id = azurerm_key_vault.this.id
+  name         = "baz"
+  value        = "secret-baz"
+
+  depends_on = [azurerm_key_vault_access_policy.current]
+}
+
 module "full_example" {
   source  = "../../"
   context = module.this.context
@@ -57,6 +83,12 @@ module "full_example" {
       secure_environment_variables = {
         SECRET_FOO = "secret-bar"
       }
+      secure_environment_variables_from_key_vault = {
+        SECRET_BAZ = {
+          key_vault_id = azurerm_key_vault.this.id
+          name         = "baz"
+        }
+      }
       volumes = {
         nginx-html = {
           mount_path = "/usr/share/nginx/html"
@@ -68,6 +100,14 @@ module "full_example" {
     }
   }
 
+  exposed_ports = [
+    {
+      port = 80
+    }
+  ]
+
+  restart_policy = "Always"
+
   identity = {
     system_assigned_identity_role_assignments = [{
       scope                = module.resource_group.id
@@ -76,13 +116,16 @@ module "full_example" {
   }
 
   container_diagnostics_log_analytics = {
-    workspace_id          = azurerm_log_analytics_workspace.this.workspace_id
-    workspace_key         = azurerm_log_analytics_workspace.this.primary_shared_key
+    workspace_id  = azurerm_log_analytics_workspace.this.workspace_id
+    workspace_key = azurerm_log_analytics_workspace.this.primary_shared_key
   }
 
-  container_group_diagnostics_setting = {
-    workspace_resource_id = azurerm_log_analytics_workspace.this.id
+  diagnostic_settings = {
+    enabled               = true
+    logs_destinations_ids = [azurerm_log_analytics_workspace.this.id]
   }
+
+  depends_on = [azurerm_key_vault_secret.baz] #Let's wait until secret is created, so we can reference it by name
 }
 ```
 
