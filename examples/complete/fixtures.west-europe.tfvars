@@ -8,9 +8,13 @@ descriptor_formats = {
     labels = ["name"]
     format = "%v-rg"
   }
-  container-group = {
+  azure-container-group = {
     labels = ["namespace", "environment", "stage", "name"]
     format = "%v-%v-%v-%v-aci"
+  }
+  azure-managed-service-identity = {
+    labels = ["namespace", "environment", "stage", "name"]
+    format = "%v-%v-%v-%v-msi"
   }
 }
 

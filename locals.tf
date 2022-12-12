@@ -6,8 +6,22 @@ locals {
     "/${module.this.delimiter}${module.this.delimiter}+/",
   module.this.delimiter), module.this.delimiter)
 
+  msi_name_from_descriptor = trim(replace(
+    lookup(module.this.descriptors, var.identity.user_assigned_identity.descriptor_name, module.this.id),
+    "/${module.this.delimiter}${module.this.delimiter}+/",
+  module.this.delimiter), module.this.delimiter)
+
+  identity = {
+    type         = var.identity.user_assigned_identity.enabled ? "UserAssigned" : var.identity.type
+    identity_ids = concat(azurerm_user_assigned_identity.this[*].id, var.identity.identity_ids)
+  }
+
   location            = coalesce(one(data.azurerm_resource_group.this[*].location), var.location)
   resource_group_name = coalesce(one(data.azurerm_resource_group.this[*].name), var.resource_group_name)
 
-  container_group_system_assigned_identity_principal_id = try(azurerm_container_group.this[0].identity[0].principal_id, "")
+
+  container_group_identity_principal_id = var.identity.enabled ? coalesce(
+    one(azurerm_user_assigned_identity.this[*].principal_id),
+    try(azurerm_container_group.this[0].identity[0].principal_id, "")
+  ) : ""
 }
