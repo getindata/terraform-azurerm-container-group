@@ -98,7 +98,7 @@ resource "azurerm_container_group" "this" {
   }
 
   dynamic "identity" {
-    for_each = var.identity != null ? [var.identity] : []
+    for_each = var.identity.enabled != null ? [local.identity] : []
     content {
       type         = identity.value.type
       identity_ids = identity.value.identity_ids
@@ -137,11 +137,18 @@ module "diagnostic_settings" {
   logs_destinations_ids = var.diagnostic_settings.logs_destinations_ids
 }
 
-resource "azurerm_role_assignment" "container_group_system_assigned_identity" {
-  count = (module.this.enabled && var.identity != null && try(var.identity.type, null) == "SystemAssigned"
-  ? length(var.identity.system_assigned_identity_role_assignments) : 0)
+resource "azurerm_user_assigned_identity" "this" {
+  count = module.this.enabled && var.identity.user_assigned_identity.enabled ? 1 : 0
 
-  principal_id         = local.container_group_system_assigned_identity_principal_id
-  scope                = var.identity.system_assigned_identity_role_assignments[count.index].scope
-  role_definition_name = var.identity.system_assigned_identity_role_assignments[count.index].role_definition_name
+  name                = local.msi_name_from_descriptor
+  location            = local.location
+  resource_group_name = local.resource_group_name
+}
+
+resource "azurerm_role_assignment" "container_group_identity" {
+  count = module.this.enabled && var.identity.enabled ? length(var.identity.role_assignments) : 0
+
+  principal_id         = local.container_group_identity_principal_id
+  scope                = var.identity.role_assignments[count.index].scope
+  role_definition_name = var.identity.role_assignments[count.index].role_definition_name
 }

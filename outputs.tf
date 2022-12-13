@@ -13,9 +13,14 @@ output "resource_group_name" {
   value       = one(azurerm_container_group.this[*].resource_group_name)
 }
 
-output "system_assigned_identity_principal_id" {
-  description = "ID of the system assigned principal"
-  value       = local.container_group_system_assigned_identity_principal_id
+output "container_group_identity_principal_id" {
+  description = "ID of the assigned principal"
+  value       = local.container_group_identity_principal_id
+}
+
+output "user_assigned_identity_id" {
+  description = "ID of the user assigned identity"
+  value       = one(azurerm_user_assigned_identity.this[*].id)
 }
 
 output "fqdn" {
