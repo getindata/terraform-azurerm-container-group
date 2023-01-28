@@ -18,6 +18,13 @@ data "azurerm_key_vault_secret" "container_secret" {
   name         = each.value.name
 }
 
+data "azurerm_key_vault_secret" "volume_secret" {
+  for_each = local.secrets_from_volumes
+
+  key_vault_id = each.value.key_vault_id
+  name         = each.value.name
+}
+
 resource "azurerm_container_group" "this" {
   count = module.this.enabled ? 1 : 0
 
@@ -65,11 +72,13 @@ resource "azurerm_container_group" "this" {
       dynamic "volume" {
         for_each = container.value.volumes
         content {
-          mount_path           = volume.value.mount_path
-          name                 = volume.key
-          read_only            = volume.value.read_only
-          empty_dir            = volume.value.empty_dir
-          secret               = volume.value.secret
+          mount_path = volume.value.mount_path
+          name       = volume.key
+          read_only  = volume.value.read_only
+          empty_dir  = volume.value.empty_dir
+          secret = merge(volume.value.secret, { for k, v in volume.value.secret_from_key_vault :
+            k => data.azurerm_key_vault_secret.volume_secret["${container.key}/${volume.key}/${v.name}"].value
+          })
           storage_account_name = volume.value.storage_account_name
           storage_account_key  = volume.value.storage_account_key
           share_name           = volume.value.share_name

@@ -94,6 +94,18 @@ module "full_example" {
             "index.html" = base64encode("<h1>Hello World</h1>")
           }
         }
+        secrets = {
+          mount_path = "/etc/secrets"
+          secret = {
+            "username" = base64encode("foobar")
+          }
+          secret_from_key_vault = {
+            credentials = {
+              key_vault_id = "/subscriptions/<SUBSCRIPTION_ID>/resourceGroups/<RESOURCE_GROUP>/providers/Microsoft.KeyVault/vaults/<KEY_VAULT>"
+              name = "CREDENTIALS"
+            }
+          }
+        }
       }
     }
   }

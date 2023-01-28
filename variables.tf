@@ -50,7 +50,11 @@ variable "containers" {
         directory = optional(string)
         revision  = optional(string)
       }))
-      secret               = optional(map(string))
+      secret = optional(map(string))
+      secret_from_key_vault = optional(map(object({
+        key_vault_id = string
+        name         = string
+      })), {})
       storage_account_name = optional(string)
       storage_account_key  = optional(string)
       share_name           = optional(string)
@@ -62,12 +66,12 @@ variable "containers" {
       for container in var.containers : [
         for volume in container.volumes :
         (length([
-          for v in [volume.secret, volume.storage_account_name, volume.git_repo, volume.empty_dir] : v
-          if v != null
+          for v in [merge(volume.secret, volume.secret_from_key_vault), volume.storage_account_name, volume.git_repo, volume.empty_dir] : v
+          if v != null && v != {}
         ]) == 1)
       ]
     ]))
-    error_message = "Exactly one of empty_dir volume, git_repo volume, secret volume or storage account volume (share_name, storage_account_name, and storage_account_key) must be specified"
+    error_message = "Exactly one of empty_dir volume, git_repo volume, secret (secret or secret_from_key_vault) or storage account volume (share_name, storage_account_name, and storage_account_key) must be specified"
   }
 }
 
