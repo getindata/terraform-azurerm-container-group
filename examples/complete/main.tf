@@ -30,25 +30,26 @@ resource "azurerm_log_analytics_workspace" "this" {
   sku                 = "PerGB2018"
 }
 
-resource "azurerm_key_vault" "this" {
-  location            = module.resource_group.location
-  name                = module.this.id
-  resource_group_name = module.resource_group.name
-  sku_name            = "standard"
-  tenant_id           = data.azurerm_client_config.current.tenant_id
+module "key_vault" {
+  source  = "github.com/getindata/terraform-azurerm-keyvault?ref=v1.0.0"
+  context = module.this.context
 
-  enable_rbac_authorization = true
+  sku_name            = "standard"
+  resource_group_name = module.resource_group.name
+  location            = module.resource_group.location
+
+  rbac_authorization_enabled = true
 }
 
 resource "azurerm_role_assignment" "current" {
   principal_id = data.azurerm_client_config.current.object_id
-  scope        = azurerm_key_vault.this.id
+  scope        = module.key_vault.key_vault_id
 
   role_definition_name = "Key Vault Secrets Officer"
 }
 
 resource "azurerm_key_vault_secret" "baz" {
-  key_vault_id = azurerm_key_vault.this.id
+  key_vault_id = module.key_vault.key_vault_id
   name         = "baz"
   value        = "secret-baz"
 
@@ -83,7 +84,7 @@ module "full_example" {
       }
       secure_environment_variables_from_key_vault = {
         SECRET_BAZ = {
-          key_vault_id = azurerm_key_vault.this.id
+          key_vault_id = module.key_vault.key_vault_id
           name         = "baz"
         }
       }
@@ -100,9 +101,9 @@ module "full_example" {
             "username" = base64encode("foobar")
           }
           secret_from_key_vault = {
-            credentials = {
-              key_vault_id = "/subscriptions/<SUBSCRIPTION_ID>/resourceGroups/<RESOURCE_GROUP>/providers/Microsoft.KeyVault/vaults/<KEY_VAULT>"
-              name = "CREDENTIALS"
+            secret-baz = {
+              key_vault_id = module.key_vault.key_vault_id
+              name = "baz"
             }
           }
         }

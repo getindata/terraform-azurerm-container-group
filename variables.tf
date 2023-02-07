@@ -71,7 +71,7 @@ variable "containers" {
         ]) == 1)
       ]
     ]))
-    error_message = "Exactly one of empty_dir volume, git_repo volume, secret (secret or secret_from_key_vault) or storage account volume (share_name, storage_account_name, and storage_account_key) must be specified"
+    error_message = "Exactly one of empty_dir volume, git_repo volume, secret volume (secret or secret_from_key_vault) or storage account volume (share_name, storage_account_name, and storage_account_key) must be specified"
   }
 }
 
