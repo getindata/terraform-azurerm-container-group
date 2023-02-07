@@ -103,7 +103,7 @@ module "full_example" {
           secret_from_key_vault = {
             secret-baz = {
               key_vault_id = module.key_vault.key_vault_id
-              name = "baz"
+              name         = "baz"
             }
           }
         }
