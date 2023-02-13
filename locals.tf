@@ -19,6 +19,15 @@ locals {
   location            = coalesce(one(data.azurerm_resource_group.this[*].location), var.location)
   resource_group_name = coalesce(one(data.azurerm_resource_group.this[*].name), var.resource_group_name)
 
+  secrets_from_volumes = merge([for container_name, container in var.containers : merge([
+    for volume_name, volume in container.volumes : {
+      for secret in volume.secret_from_key_vault : "${container_name}/${volume_name}/${secret.name}" => {
+        key_vault_id = secret.key_vault_id
+        name         = secret.name
+      } if secret != {}
+    }
+    ]...)
+  ]...)
 
   container_group_identity_principal_id = var.identity.enabled ? coalesce(
     one(azurerm_user_assigned_identity.this[*].principal_id),

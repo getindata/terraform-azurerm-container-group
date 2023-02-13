@@ -16,6 +16,10 @@ descriptor_formats = {
     labels = ["namespace", "environment", "stage", "name"]
     format = "%v-%v-%v-%v-msi"
   }
+  azure-key-vault = {
+    labels = ["namespace", "environment", "stage", "name"]
+    format = "%v-%v-%v-%v-kv"
+  }
 }
 
 tags = {
