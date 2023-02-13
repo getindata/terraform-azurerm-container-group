@@ -77,7 +77,9 @@ resource "azurerm_container_group" "this" {
           read_only  = volume.value.read_only
           empty_dir  = volume.value.empty_dir
           secret = merge(volume.value.secret, { for k, v in volume.value.secret_from_key_vault :
-            k => data.azurerm_key_vault_secret.volume_secret["${container.key}/${volume.key}/${v.name}"].value
+            k => base64encode(
+              data.azurerm_key_vault_secret.volume_secret["${container.key}/${volume.key}/${v.name}"].value
+            )
           })
           storage_account_name = volume.value.storage_account_name
           storage_account_key  = volume.value.storage_account_key
