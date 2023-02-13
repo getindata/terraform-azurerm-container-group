@@ -33,28 +33,30 @@ resource "azurerm_log_analytics_workspace" "this" {
   sku                 = "PerGB2018"
 }
 
-resource "azurerm_key_vault" "this" {
-  location            = module.resource_group.location
-  name                = module.this.id
-  resource_group_name = module.resource_group.name
+module "key_vault" {
+  source  = "github.com/getindata/terraform-azurerm-keyvault?ref=v1.0.0"
+  context = module.this.context
+
   sku_name            = "standard"
-  tenant_id           = data.azurerm_client_config.current.tenant_id
+  resource_group_name = module.resource_group.name
+  location            = module.resource_group.location
+
+  rbac_authorization_enabled = true
 }
 
-resource "azurerm_key_vault_access_policy" "current" {
-  key_vault_id = azurerm_key_vault.this.id
-  object_id    = data.azurerm_client_config.current.object_id
-  tenant_id    = data.azurerm_client_config.current.tenant_id
+resource "azurerm_role_assignment" "current" {
+  principal_id = data.azurerm_client_config.current.object_id
+  scope        = module.key_vault.key_vault_id
 
-  secret_permissions = ["Get", "Set", "Delete"]
+  role_definition_name = "Key Vault Secrets Officer"
 }
 
 resource "azurerm_key_vault_secret" "baz" {
-  key_vault_id = azurerm_key_vault.this.id
+  key_vault_id = module.key_vault.key_vault_id
   name         = "baz"
   value        = "secret-baz"
 
-  depends_on = [azurerm_key_vault_access_policy.current]
+  depends_on = [azurerm_role_assignment.current]
 }
 
 module "full_example" {
@@ -85,7 +87,7 @@ module "full_example" {
       }
       secure_environment_variables_from_key_vault = {
         SECRET_BAZ = {
-          key_vault_id = azurerm_key_vault.this.id
+          key_vault_id = module.key_vault.key_vault_id
           name         = "baz"
         }
       }
@@ -102,9 +104,9 @@ module "full_example" {
             "username" = base64encode("foobar")
           }
           secret_from_key_vault = {
-            credentials = {
-              key_vault_id = "/subscriptions/<SUBSCRIPTION_ID>/resourceGroups/<RESOURCE_GROUP>/providers/Microsoft.KeyVault/vaults/<KEY_VAULT>"
-              name = "CREDENTIALS"
+            secret-baz = {
+              key_vault_id = module.key_vault.key_vault_id
+              name         = "baz"
             }
           }
         }
@@ -121,7 +123,11 @@ module "full_example" {
   restart_policy = "Always"
 
   identity = {
-    system_assigned_identity_role_assignments = [{
+    enabled = true
+    user_assigned_identity = {
+      enabled = true
+    }
+    role_assignments = [{
       scope                = module.resource_group.id
       role_definition_name = "Contributor"
     }]
