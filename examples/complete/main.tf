@@ -49,9 +49,11 @@ resource "azurerm_role_assignment" "current" {
 }
 
 resource "azurerm_key_vault_secret" "baz" {
-  key_vault_id = module.key_vault.key_vault_id
-  name         = "baz"
-  value        = "secret-baz"
+  key_vault_id    = module.key_vault.key_vault_id
+  name            = "baz"
+  value           = "secret-baz"
+  expiration_date = "2023-12-30T20:00:00Z"
+  content_type    = "Some secret"
 
   depends_on = [azurerm_role_assignment.current]
 }
