@@ -1,5 +1,9 @@
 name: Create new release with changelog
 
+permissions:
+  contents: write
+  pull-requests: write
+
 on:
   pull_request_target:
     types: [closed]

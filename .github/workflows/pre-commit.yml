@@ -1,4 +1,6 @@
-name: Pre-Commit
+name: TF Pre-Commit
+
+permissions: {}
 
 on:
   pull_request:
